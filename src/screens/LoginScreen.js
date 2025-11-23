@@ -13,19 +13,17 @@ import {
     Image 
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur'; // Para el efecto de vidrio
-import Checkbox from 'expo-checkbox'; // Para el checkbox
-import { Ionicons } from '@expo/vector-icons'; // Para los íconos (candado, usuario, ojo)
+// import { BlurView } from 'expo-blur'; <--- ELIMINADO POR ESTABILIDAD
+import Checkbox from 'expo-checkbox'; 
+import { Ionicons } from '@expo/vector-icons'; 
 
 // --- CONFIGURACIÓN ---
-// Recuerda usar la IP correcta si no usas ADB, o 'localhost' si usas ADB reverse
+// Ajusta tu IP según corresponda
 const API_URL = 'http://localhost:8080/api/login'; 
 const LOGIN_TIMEOUT = 15000;
 
-// Colores del gradiente de fondo (Tu selección)
 const GRADIENT_COLORS = ['#2C5364', '#203A43', '#0F2027'];
 
-// Función de formateo de RUT
 function formatRut(rut) {
     const rutLimpio = rut.replace(/[^0-9kK]/g, '');
     if (rutLimpio.length === 0) return '';
@@ -36,14 +34,14 @@ function formatRut(rut) {
 }
 
 const { height } = Dimensions.get('window');
-const LogoImage = require('./../../assets/escudo-ubb.png');
+const LogoImage = require('./../../assets/escudoubb.png');
 
 export default function LoginScreen({ navigation }) {
     
     const [rut, setRut] = useState('');
     const [password, setPassword] = useState('');
-    const [isChecked, setChecked] = useState(false); // Estado del Checkbox
-    const [showPassword, setShowPassword] = useState(false); // Ver/Ocultar contraseña
+    const [isChecked, setChecked] = useState(false); 
+    const [showPassword, setShowPassword] = useState(false); 
     const [isLoading, setIsLoading] = useState(false);
 
     const handleRutChange = (text) => {
@@ -73,6 +71,7 @@ export default function LoginScreen({ navigation }) {
             const data = await response.json();
 
             if (response.ok) {
+                // Aquí pasamos el sessionId al Dashboard
                 navigation.replace('Dashboard', { sessionId: data.sessionId });
             } else {
                 Alert.alert('Acceso Denegado', data.message || 'Credenciales incorrectas.');
@@ -101,84 +100,81 @@ export default function LoginScreen({ navigation }) {
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={styles.keyboardContainer}
             >
-                {/* TARJETA DE VIDRIO (BlurView) */}
+                {/* TARJETA UNIFICADA (Sin glassCard interno) */}
                 <View style={styles.cardContainer}>
-                    <BlurView intensity={5} tint="regular" style={styles.glassCard}>
-                        
-                        {/* TÍTULO */}
-                        <View style={styles.headerContainer}>
-                            <Image 
-                                source={LogoImage}
-                                style={styles.logo}
-                                resizeMode="contain"
+                    
+                    {/* TÍTULO */}
+                    <View style={styles.headerContainer}>
+                        <Image 
+                            source={LogoImage}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.title}>ubbplayer</Text>
+                    </View>
+
+                    {/* INPUTS */}
+                    <View style={styles.inputContainer}>
+                        {/* Input RUT */}
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="person-outline" size={20} color="#aaa" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="RUT (12.345.678-9)"
+                                placeholderTextColor="#aaa"
+                                value={rut}
+                                onChangeText={handleRutChange}
+                                keyboardType="numeric"
+                                autoCapitalize="none"
                             />
-                            <Text style={styles.title}>ubbplayer</Text>
                         </View>
 
-                        {/* INPUTS */}
-                        <View style={styles.inputContainer}>
-                            {/* Input RUT */}
-                            <View style={styles.inputWrapper}>
-                                <Ionicons name="person-outline" size={20} color="#aaa" style={styles.inputIcon} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="RUT (12.345.678-9)"
-                                    placeholderTextColor="#aaa"
-                                    value={rut}
-                                    onChangeText={handleRutChange}
-                                    keyboardType="numeric"
-                                    autoCapitalize="none"
+                        {/* Input PASSWORD */}
+                        <View style={styles.inputWrapper}>
+                            <Ionicons name="lock-closed-outline" size={20} color="#aaa" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Contraseña Intranet"
+                                placeholderTextColor="#aaa"
+                                value={password}
+                                onChangeText={setPassword}
+                                secureTextEntry={!showPassword}
+                            />
+                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                <Ionicons 
+                                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                                    size={20} 
+                                    color="#aaa" 
                                 />
-                            </View>
-
-                            {/* Input PASSWORD */}
-                            <View style={styles.inputWrapper}>
-                                <Ionicons name="lock-closed-outline" size={20} color="#aaa" style={styles.inputIcon} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Contraseña Intranet"
-                                    placeholderTextColor="#aaa"
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    secureTextEntry={!showPassword}
-                                />
-                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                    <Ionicons 
-                                        name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                                        size={20} 
-                                        color="#aaa" 
-                                    />
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* CHECKBOX "Mantener sesión iniciada" */}
-                            <View style={styles.checkboxContainer}>
-                                <Checkbox
-                                    style={styles.checkbox}
-                                    value={isChecked}
-                                    onValueChange={setChecked}
-                                    color={isChecked ? '#4e60ff' : undefined}
-                                />
-                                <Text style={styles.checkboxLabel}>Mantener sesión iniciada</Text>
-                            </View>
+                            </TouchableOpacity>
                         </View>
 
-                        {/* BOTÓN LOGIN */}
-                        <TouchableOpacity 
-                            style={styles.loginButton} 
-                            onPress={handleLogin}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.loginButtonText}>INGRESAR</Text>
-                            )}
-                        </TouchableOpacity>
+                        {/* CHECKBOX */}
+                        <View style={styles.checkboxContainer}>
+                            <Checkbox
+                                style={styles.checkbox}
+                                value={isChecked}
+                                onValueChange={setChecked}
+                                color={isChecked ? '#4e60ff' : undefined}
+                            />
+                            <Text style={styles.checkboxLabel}>Mantener sesión iniciada</Text>
+                        </View>
+                    </View>
 
-                    </BlurView>
+                    {/* BOTÓN LOGIN */}
+                    <TouchableOpacity 
+                        style={styles.loginButton} 
+                        onPress={handleLogin}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <Text style={styles.loginButtonText}>INGRESAR</Text>
+                        )}
+                    </TouchableOpacity>
+
                 </View>
-
             </KeyboardAvoidingView>
         </LinearGradient>
     );
@@ -193,19 +189,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    // --- ESTILO UNIFICADO DE LA TARJETA ---
     cardContainer: {
-        width: '85%', // Ancho de la tarjeta
-        height: height * 0.65, // Ocupa aprox el 65-75% de la pantalla
+        width: '85%', 
+        height: height * 0.65, 
         borderRadius: 25,
-        overflow: 'hidden', // Necesario para que el BlurView respete los bordes redondeados
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)', // Borde sutil brillante
-    },
-    glassCard: {
-        flex: 1,
+        overflow: 'hidden', 
+        
+        // PROPIEDADES FUSIONADAS (antes en glassCard)
         padding: 25,
-        justifyContent: 'space-between', // Distribuye espacio entre título, inputs y botón
-        backgroundColor: 'rgba(0, 0, 0, 0.3)', // Fondo negro semi-transparente para ayudar al blur
+        justifyContent: 'space-between',
+        // Fondo semitransparente oscuro y uniforme
+        backgroundColor: 'rgba(25, 35, 46, 1)', 
+        
+        // Borde sutil y sombra (se mantienen)
+        borderWidth: 0.5,
+        borderColor: 'rgba(255,255,255,0.1)', 
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 10,
+        },
+        shadowOpacity: 0.5,
+        shadowRadius: 10,
+        elevation: 15,
     },
     headerContainer: {
         alignItems: 'center',
@@ -230,13 +237,13 @@ const styles = StyleSheet.create({
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.3)', // Fondo de los inputs más oscuro
+        backgroundColor: 'rgba(0, 0, 0, 0.3)', 
         borderRadius: 12,
         marginBottom: 15,
         paddingHorizontal: 15,
         height: 55,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: 'rgba(255,255,255,0.05)',
     },
     inputIcon: {
         marginRight: 10,
@@ -262,7 +269,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     loginButton: {
-        backgroundColor: '#4e60ff', // Azul vibrante tipo la imagen
+        backgroundColor: '#4e60ff', 
         borderRadius: 12,
         height: 55,
         justifyContent: 'center',
@@ -272,7 +279,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 5,
-        elevation: 5, // Sombra en Android
+        elevation: 5, 
     },
     loginButtonText: {
         color: '#fff',
